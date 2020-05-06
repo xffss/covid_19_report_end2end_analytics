@@ -173,20 +173,20 @@ WHERE
 2.	点击转到高级选项(注：通过高级选项可以选择需要的大数据平台版本。)
   
 3.	配置EMR的版本，并选择实验中需要软件的发行版,t同时选中使用Glue Data Catalog设置，这样可以快速的使用之前glue导入的数据表结构。
-  ![version](media\emr-version.png)
+  ![version](media/emr-version.png)
 4.	启动一个单节点集群，核心实例和任务实例个数为0
   为了实验的简洁，这里采用单节点集群模式。配置集群时，选择之前创建的VPC和相应的子网。主实例选择m4.large机型。
-![nodes](media\emr-nodes.png)
+![nodes](media/emr-nodes.png)
 
 5.	选择登录机器的密钥，创建集群
-![dashboard](media\emr-dashboard.png)
+![dashboard](media/emr-dashboard.png)
 
 当集群变成等待状态，说明集群已经创建成功。
 6.	设置安全组，允许从本地登录主实例并使用ssh工具进行登录
-![login](media\emr-login.png)
+![login](media/emr-login.png)
 
 7. 在EMR中使用HIVE查询数据库信息，查询的语句可以参考上面athena的语句。
-![hive_query](media\hive_query.png)
+![hive_query](media/hive_query.png)
 
 ### 使用Spark进行分析
 

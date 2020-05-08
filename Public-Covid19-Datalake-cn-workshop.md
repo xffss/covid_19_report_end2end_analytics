@@ -1,5 +1,7 @@
 # 用于分析新冠肺炎 COVID-19 的 AWS 公共数据湖大数据示例
 
+[toc]
+
 该数据湖由公共可读的 Amazon S3 存储桶（s3://covid19-lake）中的数据组成。 本文章显示了如何通过AWS Glue 数据目录为该数据设置表格定义，并且使用cloudformation将所有的表结构一次过生成，以将其公开给分析引擎。 然后使用无服务器 SQL 查询引擎 Amazon Athena 查询 AWS COVID-19 数据。最后利用Apache Superset 进行可视化分析和仪表盘展示。
 
 [COVID-19 AWS 公共数据湖介绍](https://aws.amazon.com/cn/blogs/big-data/a-public-data-lake-for-analysis-of-covid-19-data/)
@@ -10,26 +12,28 @@
 
 |表名|描述|数据源|
 | :-----| :-----| :-----|
-|enigma_jhu|该数据集跟踪了世界各省，州和国家中已确认的COVID-19病例，并细分了美国的县级。|约翰.霍普金斯大学|
+|enigma_jhu|该数据集跟踪了世界各省，州和国家中已确认的COVID-19病例，并细分了美国的县级。本次实验将会重点实验该数据集|约翰.霍普金斯大学|
+|hospital_beds|美国的病床数据及其利用情况|Definitive Healthcare|
+|country_codes|美国国家代码||
+|county_populations|根据最近的人口普查数据查找每个县的人口表||
+|us_state_abbreviations|美国州简写||
 |nytimes_states|美国州一级的COVID-19病例数据|NY Times|
 |nytimes_counties|美国村一级的COVID-19病例数据|NY Times|
 |covid_testing_states_daily|美国各州总测试每日趋势|COVID Tracking Project|
 |covid_testing_us_daily|美国总测试每日趋势|COVID Tracking Project|
 |covid_testing_us_total|美国总测试|COVID Tracking Project|
-|hospital_beds|美国的病床数据及其利用情况|Definitive Healthcare|
 |alleninstitute_metadata|从CORD-19研究挑战数据集中提取的论文中的元数据。 “ sha”列表示报道ID，它是数据湖中报道的文件名。|Allen Institute for AI|
-|country_codes|美国国家代码||
-|county_populations|根据最近的人口普查数据查找每个县的人口表||
-|us_state_abbreviations|美国州简写||
 
 
-## 浏览数据集
+
+## 同步AWS COVID-19 公共数据湖数据到您账号的 S3 桶(对于后续的深入研究需要全部数据的情况)
+
+### 浏览数据集
 ```bash
 # AWS S3 命令行
 aws s3 ls s3://covid19-lake/ --profile us-east-1
 ```
-
-## 同步AWS COVID-19 公共数据湖数据到您账号的 S3 桶
+### 同步数据集到AWS国内区域
 使用工具 [amazon-s3-resumable-upload toolkit](https://github.com/aws-samples/amazon-s3-resumable-upload) 同步AWS COVID-19 公共数据湖数据到您账号的 S3 桶
 
 命令步骤
@@ -115,7 +119,7 @@ cdk deploy --profile ${AWS_GLOBAL_PROFILE} --outputs-file "stack-outputs.json"
 ![enigma-jhu-table-schema1](media/public-covid19-table-schema1.png)
 ![enigma-jhu-table-schema2](media/public-covid19-table-schema2.png)
 
-### AWS提供了一个[Cloudformation](script\CovidLakeStack.template.json)可以方便快速的爬取所有的表。
+### 对于下载了全部数据集的情况，AWS提供了一个[Cloudformation](script\CovidLakeStack.template.json)可以方便快速的爬取所有的表。
 转换前只需要将里面的存储桶的文件进行相应修改即可。
 ![Cloudformation-execute-result](media\Cloudformation-execute-result.png)
 ![cloudformation-glue-all-tables](media\cloudformation-glue-all-tables.png)
@@ -136,7 +140,7 @@ WHERE
 SELECT
     SUM(confirmed) as total_confirmed, SUM(recovered) as total_recovered, SUM(deaths) as total_deaths, SUM (confirmed-recovered-deaths) as total_active, country_region
 FROM 
-    "covid19"."enigma_jhu_parquet"
+    "covid19"."enigma_jhu"
 WHERE
     last_update like '2020-04-19%'
 GROUP BY country_region ORDER BY total_confirmed DESC;
@@ -163,6 +167,15 @@ FROM
     "covid19"."enigma_jhu"
 WHERE 
     cast(from_iso8601_timestamp(last_update) as date) > now() - interval '7' day AND country_region = 'US'
+
+- 该查询返回美国的每个州的床位数及确诊数的关系
+select 
+    sum(b.num_licensed_beds) beds,sum(e.confirmed) confirmed,b.county_name 
+from 
+    covid19.hospital_beds b, covid19.enigma_jhu e
+where 
+    b.county_name  = e.province_state 
+group by b.county_name ;
 ```
 
 ## 使用EMR进行数据处理
@@ -188,9 +201,6 @@ WHERE
 7. 在EMR中使用HIVE查询数据库信息，查询的语句可以参考上面athena的语句。
 ![hive_query](media/hive_query.png)
 
-### 使用Spark进行分析
-
-
 ## 使用Redshift进行数据处理
 ### 创建一个 AWS Glue ETL作业，将 Json 转换为 Parquet 格式
 为了提高查询性能并节省成本，我将创建一个 AWS Glue ETL 作业，将 Json 转换为 Apache Parquet 格式, Parquet与Redshift结合的优势，可以参考[【在生产中结合使用 Amazon Redshift Spectrum、Amazon Athena 和 AWS Glue 与 Node.js】](https://amazonaws-china.com/cn/blogs/china/big-data-using-amazon-redshift-spectrum-amazon-athena-and-aws-glue-with-node-js-in-production/)
@@ -209,6 +219,8 @@ WHERE
 ![json2parquet-schema-mapping](media/public-covid19-json2parquet-schema-mapping.png)
 
 5. 运行作业，并确保执行成功完成。
+
+对于持续的数据，可以考虑使用lambda将s3的文件在上传的时候就自动转换为parquet。
 
 ### 配置外部schema，使Redshift可以直接访问Glue创建的数据表。
 
@@ -477,9 +489,8 @@ ORDER BY "sum(us_state_active)" DESC
 LIMIT 100;
 ```
 
+## 后续
 
-
-## 使用Sagemaker进行模型预测
-
-待续
-
+### 使用spark进行emr的处理
+### 使用sagemaker进行预测
+### 增量数据在仪表盘的更新

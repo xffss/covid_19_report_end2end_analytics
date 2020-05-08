@@ -332,8 +332,8 @@ docker-compose up
 ```
 
 ### 数据准备
-- Superset `World_Map` 视图不能将源数据中 `US` 缩写识别为 `United States`，因此我做了一个映射。
-- 我也计算了现存确认列
+- Superset `World_Map` 视图不能将源数据中 `US` 缩写识别为 `United States`，因此我做了一个映射。同时增加一列为日期的方便superset进行读取。
+- 计算了现存确认列,
 ```sql
 CREATE TABLE enigma_jhu_parquet_country as 
   SELECT "fips", "admin2", "province_state", 
@@ -343,7 +343,7 @@ CREATE TABLE enigma_jhu_parquet_country as
       ELSE "country_region"
       END AS "country_region",
       "combined_key", "last_update", "latitude", "longitude", 
-      "confirmed", "deaths", "recovered", (confirmed-recovered-deaths) as "active"
+      "confirmed", "deaths", "recovered", (confirmed-recovered-deaths) as "active", to_date(substr(t.last_update,1,10),'yyyy-mm-dd') as update_date
 from (
 select t.*
 from "covid19"."enigma_jhu" t)

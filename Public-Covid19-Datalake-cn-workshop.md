@@ -79,7 +79,7 @@ alarm_email = "alarm_your_email@email.com"
 # 部署工具扫描和同步目标桶与源桶数据
 cdk deploy --profile ${AWS_GLOBAL_PROFILE} --outputs-file "stack-outputs.json"
 ```
-也可以使用一台主机两边通过aws s3 sync的方式进行（注意，aws的s3cli不支持源与目标的profile不一致，所以需要先下载再上传.如果是本次实验，可以使用这里的[数据集](dataset\rawdata.zip)
+也可以使用一台主机两边通过aws s3 sync的方式进行（注意，aws的s3cli不支持源与目标的profile不一致，所以需要先下载再上传.如果是本次实验，可以使用这里的[数据集](dataset/rawdata.zip)
 
 ## 通过 AWS Glue 数据目录浏览数据
 ### 创建一个 AWS Glue 爬虫 以自动爬取S3桶数据，创建表定义和填充 AWS Glue 数据目录
@@ -116,13 +116,13 @@ cdk deploy --profile ${AWS_GLOBAL_PROFILE} --outputs-file "stack-outputs.json"
 
 名称为enigma-jhu 数据表跟踪了世界各省，州和国家中确诊，治愈和死亡的COVID-19病例，并细分到了美国的州县级。
 
-![enigma-jhu-table-schema1](media\public-covid19-table-schema1.png)
-![enigma-jhu-table-schema2](media\public-covid19-table-schema2.png)
+![enigma-jhu-table-schema1](media/public-covid19-table-schema1.png)
+![enigma-jhu-table-schema2](media/public-covid19-table-schema2.png)
 
 ### 对于下载了全部数据集的情况，AWS提供了一个[Cloudformation](script\CovidLakeStack.template.json)可以方便快速的爬取所有的表。
 转换前只需要将里面的存储桶的文件进行相应修改即可。
-![Cloudformation-execute-result](media\Cloudformation-execute-result.png)
-![cloudformation-glue-all-tables](media\cloudformation-glue-all-tables.png)
+![Cloudformation-execute-result](media/Cloudformation-execute-result.png)
+![cloudformation-glue-all-tables](media/cloudformation-glue-all-tables.png)
 
 ## 通过 Amazon Athena 查询数据
 

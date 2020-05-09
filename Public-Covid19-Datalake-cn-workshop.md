@@ -79,7 +79,7 @@ alarm_email = "alarm_your_email@email.com"
 # 部署工具扫描和同步目标桶与源桶数据
 cdk deploy --profile ${AWS_GLOBAL_PROFILE} --outputs-file "stack-outputs.json"
 ```
-也可以使用一台主机两边通过aws s3 sync的方式进行（注意，aws的s3cli不支持源与目标的profile不一致，所以需要先下载再上传
+也可以使用一台主机两边通过aws s3 sync的方式进行（注意，aws的s3cli不支持源与目标的profile不一致，所以需要先下载再上传.如果是本次实验，可以使用这里的[数据集](dataset\rawdata.zip)
 
 ## 通过 AWS Glue 数据目录浏览数据
 ### 创建一个 AWS Glue 爬虫 以自动爬取S3桶数据，创建表定义和填充 AWS Glue 数据目录

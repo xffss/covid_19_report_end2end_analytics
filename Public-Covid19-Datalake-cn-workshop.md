@@ -116,8 +116,8 @@ cdk deploy --profile ${AWS_GLOBAL_PROFILE} --outputs-file "stack-outputs.json"
 
 名称为enigma-jhu 数据表跟踪了世界各省，州和国家中确诊，治愈和死亡的COVID-19病例，并细分到了美国的州县级。
 
-![enigma-jhu-table-schema1](media/public-covid19-table-schema1.png)
-![enigma-jhu-table-schema2](media/public-covid19-table-schema2.png)
+![enigma-jhu-table-schema1](media\public-covid19-table-schema1.png)
+![enigma-jhu-table-schema2](media\public-covid19-table-schema2.png)
 
 ### 对于下载了全部数据集的情况，AWS提供了一个[Cloudformation](script\CovidLakeStack.template.json)可以方便快速的爬取所有的表。
 转换前只需要将里面的存储桶的文件进行相应修改即可。
